@@ -4,11 +4,13 @@ const helmet = require('helmet');
 const server = express();
 const projectRouter = require('./projects/projects-router');
 const actionRouter = require('./actions/actions-router');
+const {logger} = require('./projects/projects-middleware');
 
 server.use(helmet());
 server.use(express.json());
 server.use('/api/projects', projectRouter);
 server.use('/api/actions', actionRouter);
+server.use(logger);
 
 // Configure your server here
 // Build your actions router in /api/actions/actions-router.js

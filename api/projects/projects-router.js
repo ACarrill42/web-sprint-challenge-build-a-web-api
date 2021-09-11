@@ -1,12 +1,14 @@
 // Write your "projects" router here!
 const express = require('express');
 const Projects = require('./projects-model');
+const {validatePost, validateProject} = require('./projects-middleware');
 
 const router = express.Router();
 
 router.use(express.json());
+router.use(errorHandler);
 
-router.get('/', (req,res) => { 
+router.get('/', (req,res,next) => { 
   Projects.get(req.query)
     .then(project => {
       if(project) {
@@ -15,12 +17,10 @@ router.get('/', (req,res) => {
         res.status(404).json([])         
       }
       })
-    .catch(error => {
-      res.status(500).json(error);
-    })
+    .catch(error => {next(error)})
 });
 
-router.get('/:id', (req,res) => {
+router.get('/:id', validateProject, (req,res,next) => {
   Projects.get(req.params.id)
     .then(project => {
       if (project) {
@@ -29,12 +29,10 @@ router.get('/:id', (req,res) => {
       res.status(404).json({message: 'There is no project with this id'})
       }
     })
-    .catch(error => {
-      res.status(500).json(error)
-    })
+    .catch(error => {next(error)})
 });
 
-router.post('/', (req,res) => {
+router.post('/', validatePost, validateProject, (req,res,next) => {
   Projects.insert(req.body)
     .then(project => {
       if(project) {
@@ -43,14 +41,12 @@ router.post('/', (req,res) => {
         res.status(400).json({message: 'Request body is missing required fields'})
       }
     })
-    .catch(error => {
-      res.status(500).json(error)
-    })
+    .catch(error => {next(error)})
 });
 
-router.put('/:id', (req,res) => {
+router.put('/:id', validateProject, (req,res,next) => {
   const changes = {name: req.name};
-  const id = req.params.id;
+  const {id} = req.params;
   Projects.update(id, changes)
     .then(() => {
       return Projects.get(id)
@@ -64,12 +60,10 @@ router.put('/:id', (req,res) => {
         res.status(400).json({message: 'Missing a required field'})
       }
     })
-    .catch(error => {
-      res.status(500).json(error)
-    })
+    .catch(error => {next(error)})
 });
 
-router.delete('/:id', (req,res) => {
+router.delete('/:id', (req,res,next) => {
   Projects.remove(req.params.id)
     .then(project => {
       if(project) {
@@ -78,12 +72,10 @@ router.delete('/:id', (req,res) => {
         res.status(404).json({message: 'There is no project with that id'})
       }
     })
-    .catch(error => {
-      res.status(500).json(error)
-    })
+    .catch(error => {next(error)})
 });
 
-router.get('/:id/actions', (req, res) => {
+router.get('/:id/actions', (req, res, next) => {
   Projects.getProjectActions(req.params.id)
     .then(project => {
       if (project) {
@@ -92,9 +84,11 @@ router.get('/:id/actions', (req, res) => {
         res.status.json({message: 'No project with given id'})
       }
     })
-    .catch(error => {
-      res.status(500).json(error)
-    })
+    .catch(error => {next(error)})
 });
+
+function errorHandler(error, req, res, next) {
+  res.status(500).json(error.message);
+}
 
 module.exports = router;
