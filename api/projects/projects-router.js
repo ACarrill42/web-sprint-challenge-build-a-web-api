@@ -6,15 +6,15 @@ const router = express.Router();
 
 router.use(express.json());
 
-router.get('/', (req,res) => {
+router.get('/', (req,res) => { 
   Projects.get(req.query)
     .then(project => {
-      if (project) {
-        res.status(200).json(project)
-      } else {
-        res.status(404).json([])
+      if(project) {
+        res.status(200).json(project)        
+      }else {
+        res.status(404).json([])         
       }
-    })
+      })
     .catch(error => {
       res.status(500).json(error);
     })
@@ -25,7 +25,7 @@ router.get('/:id', (req,res) => {
     .then(project => {
       if (project) {
       res.status(200).json(project)        
-      } else {
+      }else {
       res.status(404).json({message: 'There is no project with this id'})
       }
     })
@@ -35,11 +35,11 @@ router.get('/:id', (req,res) => {
 });
 
 router.post('/', (req,res) => {
-  Projects.insert({name: req.name})
+  Projects.insert(req.body)
     .then(project => {
       if(project) {
         res.status(200).json(project) 
-      } else {
+      }else {
         res.status(400).json({message: 'Request body is missing required fields'})
       }
     })
